@@ -68,6 +68,7 @@
 
 var board = new Array(9);
 var player = 0;
+var lock = false;
 
 function init() {
   var down = "mousedown"; var up = "mouseup";
@@ -115,6 +116,8 @@ function createBoard() {
 }
 
 function squareSelected(evt, currentPlayer) {
+  console.log(lock);
+  if(lock==true) return;
   if(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 ){
     var square = evt.target;
     if (square.className.match(/marker/)) {
@@ -122,7 +125,7 @@ function squareSelected(evt, currentPlayer) {
       return;
     }
     else {
-      $.get( "/postChoice?i="+square.id, function( data ) {
+      $.get( "/postChoice?i="+square.id+"&p="+player, function( data ) {
 
       });
       fillSquareWithMarker(square, currentPlayer);
@@ -151,9 +154,9 @@ function updateBoard(index, marker) {
   6 7 8
 */
 function declareWinner() {
-  if (confirm("Temos um ganhador! Novo jogo??")) {
-    newGame();
-  }
+  alert("Temos um ganhador!")
+  lock = true
+
 }
 
 function weHaveAWinner(a, b, c) {
@@ -234,6 +237,7 @@ function switchPlayers() {
 }
 
 function newGame() {
+  lock = false;
   for(var i=0;i<9;i++){
     if(board[i]!=""){
       $.get( "/new?p="+player, function( data ) {
@@ -248,7 +252,7 @@ function check(){
   console.log(getCurrentPlayer(), player);
   //if(){
     $.get( "/getChoice?p="+player, function(data) {
-      if(data.id && !(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 )){
+      if(board[data.id] == "" && data.id && !(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 )){
         fillSquareWithMarker(document.getElementById(data.id), getCurrentPlayer());
         updateBoard(data.id, getCurrentPlayer());
         checkForWinner();
@@ -258,7 +262,7 @@ function check(){
       }
     });
 //  }
-   setTimeout(check, 3000);
+   setTimeout(check, 1000);
 }
 
 </script>

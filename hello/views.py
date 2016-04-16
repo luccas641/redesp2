@@ -58,44 +58,27 @@ def auth(request):
 def postChoice(request):
     global i
     global player
+    p = int(request.GET['p'])-1
 
-    requestLock()
-    player = (player +1) %2
-    i = request.GET['i']
-    releaseLock()
+    if(p==player):
+        player = (player +1) %2
+        i = request.GET['i']
+
     return JsonResponse({'msg': "ok"})
 
 
 def getChoice(request):
     global n
 
-    requestLock()
     p = int(request.GET['p'])-1
 
     if(n==True):
-        releaseLock()
         return JsonResponse({'player': 2})
 
     if(p==player):
-        releaseLock()
         return JsonResponse({'id': i})
 
-    releaseLock()
     return JsonResponse({'msg': "error"})
-
-def requestLock():
-    global lock
-
-    while(lock==True):
-        pass
-    lock = True
-
-def releaseLock():
-    global lock
-
-    while(lock==False):
-        pass
-    lock = False
 
 def new(request):
     global player
