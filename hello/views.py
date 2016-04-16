@@ -51,7 +51,7 @@ def auth(request):
 
     count = count + 1
     if(count>2):
-        return JsonResponse({"player": "error"})
+        return JsonResponse({"player": "error", "p": player})
 
     return JsonResponse({'player': count})
 
@@ -64,7 +64,7 @@ def postChoice(request):
         player = (player +1) %2
         i = request.GET['i']
 
-    return JsonResponse({'msg': "ok"})
+    return JsonResponse({'msg': "ok", "p": player})
 
 
 def getChoice(request):
@@ -76,7 +76,7 @@ def getChoice(request):
         return JsonResponse({'player': 2})
 
     if(p==player):
-        return JsonResponse({'id': i})
+        return JsonResponse({'id': i, "p": p})
 
     return JsonResponse({'msg': "error"})
 
@@ -92,4 +92,4 @@ def new(request):
         n = True
     else:
         n = False
-    return JsonResponse({'msg': "ok"})
+    return JsonResponse({'msg': "ok", "p": player})
