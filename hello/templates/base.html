@@ -138,34 +138,23 @@ function squareSelected(evt, currentPlayer) {
   }
 }
 
-/*** create an X or O div and append it to the square ***/
 function fillSquareWithMarker(square, player) {
   var marker = document.createElement('div');
-  /* set the class name on the new div to X-marker or O-marker, depending on the current player */
   marker.className = player + "-marker";
   square.appendChild(marker);
 }
 
-/*** update our array which tracks the state of the board, and write the current state to local storage ***/
 function updateBoard(index, marker) {
   board[index] = marker;
-
-  /* HTML5 localStorage only allows storage of strings - convert our array to a string */
-  var boardstring = JSON.stringify(board);
-
 }
 
-
-/***********************************************************************************/
-/* checking for and declaring a winner, after a square has been marked with X or O */
-/***********************************************************************************/
-/* Our Tic Tac Toe board, an array:
+/*
   0 1 2
   3 4 5
   6 7 8
 */
 function declareWinner() {
-  if (confirm("We have a winner!  New game?")) {
+  if (confirm("Temos um ganhador! Novo jogo??")) {
     newGame();
   }
 }
@@ -249,7 +238,9 @@ function switchPlayers() {
 }
 
 function newGame() {
-  location.reload();
+  $.get( "/new", function( data ) {
+    location.reload();
+  });
 }
 
 function check(){
