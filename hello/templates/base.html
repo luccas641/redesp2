@@ -1,268 +1,72 @@
 <!doctype html>
 <html>
 <head>
-  <title>Tic Tac Toe</title>
+  <title>Chat</title>
   <meta name="viewport" content="width=600px" />
   <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
-  <style>
-
-  body {
-    text-align: center;
-    font-size: 16px;
-    font-family: 'Comic Sans MS', Helvetica, sans-serif;
-  }
-  table {
-    margin-left:auto;
-    margin-right:auto;
-    width: 551px;
-    -webkit-user-select: none;
-  }
-  td {
-    height: 175px;
-    width: 175px;
-    text-align: center;
-    font-size: 120px;
-    border: 2px solid #cccccc;
-    -webkit-border-radius: 10px;
-  }
-  #players {
-    margin-left:auto;
-    margin-right:auto;
-    padding: 20px 10px 10px 10px;
-    width: 511px;
-    text-align: left;
-  }
-  #players > div {
-    display: inline-block;
-    padding-right: 25px;
-    color: #cccccc;
-    -webkit-transition-duration: 200ms;
-  }
-  .button {
-    float: right;
-  }
-  .current-player {
-    color: black !important;
-    -webkit-transform: scale(1.5);
-  }
-  .X-marker {
-    color: #663366;
-  }
-  .X-marker:before {
-    content: "X";
-  }
-  .O-marker {
-    color: #CC0033;
-  }
-  .O-marker:before {
-    content: "O";
-  }
-</style>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<!-- Latest compiled and minified JavaScript -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 </head>
-<body onload="init();">
-
-{% block content %}{% endblock %}
+<body onload="auth();">
+  <div class="container">
+    <div class="row">
+      Luccas Henrique Braga de Almeida 7986796 <br/>
+      Gabriel Rodrigues do Prado Rossales 6608843 <br/>
+      Rafael Bueno da Silva 8937271 <br/>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <textarea disabled id="msgs" style="height: 300px"></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-10">
+        <input class="form-control" type="text" id="input"/>
+      </div>
+      <div class="col-md-2">
+        <input class="btn btn-primary" type="button" id="send" value="enviar" onclick="sendMsg()">
+      </div>
+      </div>
+    </div>
+  </div>
 
 </body>
 <script>
+name = "";
 
-var board = new Array(9);
-var player = 0;
-var lock = false;
-
-function init() {
-  var down = "mousedown"; var up = "mouseup";
-  if ('createTouch' in document) { down = "touchstart"; up ="touchend"; }
-
-  document.querySelector("input.button").addEventListener(up, newGame, false);
-  var squares = document.getElementsByTagName("td");
-  for (var s = 0; s < squares.length; s++) {
-    squares[s].addEventListener(down, function(evt){squareSelected(evt, getCurrentPlayer());}, false);
-  }
-
-  $.get( "/auth", function( data ) {
-    setInitialPlayer();
-    if(data.player!="error"){
-      player = data.player;
-      if(player==1){
-        document.getElementById("me").innerHTML = "X";
-      }else{
-        document.getElementById("me").innerHTML = "O";
-      }
-      createBoard();
-      if(player==2){
-        $.get( "/getChoice?p=2", function(data) {
-          if(data.id){
-            fillSquareWithMarker(document.getElementById(data.id), "X");
-            updateBoard(data.id, "X");
-            switchPlayers();
-          }
-        });
-      }
-    }else{
-      if(confirm("Já existem 2 jogadores logados. Deseja desconecta-los e iniciar um novo jogo?")){
-        newGame();
-      }
-    }
+function auth(){
+  name = prompt("Seu nome:");
+  $.get( "/auth?name="+name, function(data){
     check();
   });
 }
 
-function createBoard() {
-  for (var i = 0; i < board.length; i++) {
-    board[i] = "";
-    document.getElementById(i).innerHTML = "";
-  }
+function sendMsg(){
+  msg = $("#input").val();
+  $.get( "/sendMsg?name="+name+"&msg="+msg);
+  $("#input").val("");
 }
-
-function squareSelected(evt, currentPlayer) {
-  console.log(lock);
-  if(lock==true) return;
-  if(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 ){
-    var square = evt.target;
-    if (square.className.match(/marker/)) {
-      alert("Espaço ja utilizado");
-      return;
-    }
-    else {
-      $.get( "/postChoice?i="+square.id+"&p="+player, function( data ) {
-
-      });
-      fillSquareWithMarker(square, currentPlayer);
-      updateBoard(square.id, currentPlayer);
-      checkForWinner();
-      switchPlayers();
-    }
-  }else{
-    alert("Aguarde sua vez");
-  }
-}
-
-function fillSquareWithMarker(square, player) {
-  var marker = document.createElement('div');
-  marker.className = player + "-marker";
-  square.appendChild(marker);
-}
-
-function updateBoard(index, marker) {
-  board[index] = marker;
-}
-
-/*
-  0 1 2
-  3 4 5
-  6 7 8
-*/
-function declareWinner() {
-  alert("Temos um ganhador!")
-  lock = true
-
-}
-
-function weHaveAWinner(a, b, c) {
-  if ((board[a] === board[b]) && (board[b] === board[c]) && (board[a] != "" || board[b] != "" || board[c] != "")) {
-    setTimeout(declareWinner(), 100);
-    return true;
-  }
-  else
-    return false;
-}
-
-function checkForWinner() {
-  /* check rows */
-  var a = 0; var b = 1; var c = 2;
-  while (c < board.length) {
-    if (weHaveAWinner(a, b, c)) {
-      return;
-    }
-    a+=3; b+=3; c+=3;
-  }
-
-  /* check columns */
-  a = 0; b = 3; c = 6;
-  while (c < board.length) {
-    if (weHaveAWinner(a, b, c)) {
-      return;
-    }
-    a+=1; b+=1; c+=1;
-  }
-
-  /* check diagonal right */
-  if (weHaveAWinner(0, 4, 8)) {
-    return;
-  }
-  /* check diagonal left */
-  if (weHaveAWinner(2, 4, 6)) {
-    return;
-  }
-
-  if (!JSON.stringify(board).match(/,"",/)) {
-    if (confirm("Empate. Novo jogo?")) {
-      newGame();
-    }
-  }
-}
-
-
-/****************************************************************************************/
-/* utilities for getting the current player, switching players, and creating a new game */
-/****************************************************************************************/
-function getCurrentPlayer() {
-  return document.querySelector(".current-player").id;
-}
-
-/* set the initial player, when starting a whole new game or restoring the game state when the page is revisited */
-function setInitialPlayer() {
-  var playerX = document.getElementById("X");
-  var playerO = document.getElementById("O");
-  playerX.className = "";
-  playerO.className = "";
-
-  playerX.className = "current-player";
-
-}
-
-function switchPlayers() {
-  var playerX = document.getElementById("X");
-  var playerO = document.getElementById("O");
-
-  if (playerX.className.match(/current-player/)) {
-    playerO.className = "current-player";
-    playerX.className = "";
-  }
-  else {
-    playerX.className = "current-player";
-    playerO.className = "";
-  }
-}
-
-function newGame() {
-  lock = false;
-  for(var i=0;i<9;i++){
-    if(board[i]!=""){
-      $.get( "/new?p="+player, function( data ) {
-        location.reload();
-      });
-      return;
-    }
-  }
-}
+prev = "";
 
 function check(){
-  console.log(getCurrentPlayer(), player);
-  //if(){
-    $.get( "/getChoice?p="+player, function(data) {
-      if(board[data.id] == "" && data.id && !(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 )){
-        fillSquareWithMarker(document.getElementById(data.id), getCurrentPlayer());
-        updateBoard(data.id, getCurrentPlayer());
-        checkForWinner();
-        switchPlayers();
-      }else if(data.player){
-        newGame();
-      }
-      setTimeout(check, 1000);
-    });
-//  }
+  $.get( "/getMsg?name="+name, function(data) {
+    if(prev!=data){
+      prev = data;
+      $("#msgs").val("");
+      $.each(data, function () {
+         $.each(this, function (name, value) {
+           if(name=="user"){
+             $("#msgs").val($("#msgs").val()+value+" diz:\n");
+           }else{
+             $("#msgs").val($("#msgs").val()+value+"\n");
+           }
+         });
+      });
+    }
+    setTimeout(check, 1000);
+  });
 }
 
 </script>

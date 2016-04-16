@@ -5,91 +5,55 @@ from django.http import HttpResponse
 class JsonResponse(HttpResponse):
     def __init__(self, content, **kwargs):
         kwargs['content_type'] = 'application/json'
-        super(JsonResponse, self).__init__(json.dumps(content), **kwargs)
+        if(isinstance(content, list)):
+            super(JsonResponse, self).__init__(json.dumps([ob.__dict__ for ob in content]), **kwargs)
+        else:
+            super(JsonResponse, self).__init__(json.dumps(content), **kwargs)
 
-class JsonDataResponse(HttpResponse):
-    """
-    Returns a json dumped dict with fields 'message' and 'data'.
+class Message:
+    def __init__(self, user, msg):
+        self.user = user
+        self.msg = msg
 
-    """
-    def __init__(self, *args, **kwargs):
-        message = None
-        data = None
-        if len(args) > 0:
-            message = args[0]
-        if len(args) > 1:
-            data = args[1]
-        if 'message' in kwargs:
-            message = kwargs['message']
-        kwargs.pop('message')
-        if 'data' in kwargs:
-            data = kwargs['data']
-            kwargs.pop('data')
+    def __str__( self ):
+        return "{'user':  '%s', 'msg': '%s'}" % (self.user, self.msg)
 
-        kwargs['content'] = json.dumps(dict(message=message, data=data))
+    def to_JSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+            sort_keys=True, indent=4)
 
-        if 'content_type' not in kwargs:
-            kwargs['content_type'] = 'application/json'
-
-        super(JsonDataResponse, self).__init__(**kwargs)
-
-matrix = [[0 for x in range(3)] for x in range(3)]
-player = 0
-count = 0
-i = 0
-n = False
-lock = False;
-
-# Create your views here.
+msgs = []
+users = []
 def index(request):
-    # return HttpResponse('Hello from Python!')
     return render(request, 'index.html')
 
-
 def auth(request):
-    global count
+    global msgs
+    global users
+    name = request.GET['name'];
+    users.append(name);
 
-    count = count + 1
-    if(count>2):
-        return JsonResponse({"player": "error", "p": player})
+    return JsonResponse({'msg': "welcome"})
 
-    return JsonResponse({'player': count})
+def logout(request):
+    global msgs
+    global users
+    name = request.GET['name'];
+    for i in range(len(users)):
+        if(users[i]==name):
+            del users[i]
+            break
+    return JsonResponse({'msg': "bye"})
 
-def postChoice(request):
-    global i
-    global player
-    p = int(request.GET['p'])-1
+def send(request):
+    global msgs
+    global users
+    name = request.GET['name'];
+    msg = request.GET['msg'];
+    msgs.append(Message(name, msg))
+    return JsonResponse({'msg': "ok"})
 
-    if(p==player):
-        player = (player +1) %2
-        i = request.GET['i']
-
-    return JsonResponse({'msg': "ok", "p": player})
-
-
-def getChoice(request):
-    global n
-
-    p = int(request.GET['p'])-1
-
-    if(n==True):
-        return JsonResponse({'player': 2})
-
-    if(p==player):
-        return JsonResponse({'id': i, "p": p})
-
-    return JsonResponse({'msg': "error"})
-
-def new(request):
-    global player
-    global count
-    global n
-
-    if(n==False):
-        count = 0
-        player = 0
-        i = 0
-        n = True
-    else:
-        n = False
-    return JsonResponse({'msg': "ok", "p": player})
+def get(request):
+    global msgs
+    global users
+    return JsonResponse(msgs)
