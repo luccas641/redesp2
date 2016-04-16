@@ -37,6 +37,7 @@ matrix = [[0 for x in range(3)] for x in range(3)]
 player = 0
 count = 0
 i = 0
+n = False
 
 # Create your views here.
 def index(request):
@@ -64,6 +65,11 @@ def postChoice(request):
 
 def getChoice(request):
     p = int(request.GET['p'])-1
+
+    global n
+    if(n==True):
+        return JsonResponse({'player': 2})
+
     if(p==player):
         return JsonResponse({'id': i})
 
@@ -72,8 +78,13 @@ def getChoice(request):
 def new(request):
     global player
     global count
+    global n
 
-    count = 0
-    player = 0
-    i = 0
+    if(n==False):
+        count = 0
+        player = 0
+        i = 0
+        n = True
+    else:
+        n = False
     return JsonResponse({'msg': "ok"})

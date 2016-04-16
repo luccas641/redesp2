@@ -114,16 +114,13 @@ function createBoard() {
   }
 }
 
-/*** call this function whenever a square is clicked or tapped ***/
 function squareSelected(evt, currentPlayer) {
   if(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 ){
     var square = evt.target;
-    /* check to see if the square already contains an X or O marker */
     if (square.className.match(/marker/)) {
       alert("Espaço ja utilizado");
       return;
     }
-    /* if not already marked, mark the square, update the array that tracks our board, check for a winner, and switch players */
     else {
       $.get( "/postChoice?i="+square.id, function( data ) {
 
@@ -196,9 +193,8 @@ function checkForWinner() {
     return;
   }
 
-  /* if there's no winner but the board is full, ask the user if they want to start a new game */
   if (!JSON.stringify(board).match(/,"",/)) {
-    if (confirm("It's a draw. New game?")) {
+    if (confirm("Empate. Novo jogo?")) {
       newGame();
     }
   }
@@ -238,9 +234,14 @@ function switchPlayers() {
 }
 
 function newGame() {
-  $.get( "/new", function( data ) {
-    location.reload();
-  });
+  for(var i=0;i<9;i++){
+    if(board[i]!=""){
+      $.get( "/new?p="+player, function( data ) {
+        location.reload();
+      });
+      return;
+    }
+  }
 }
 
 function check(){
@@ -252,6 +253,8 @@ function check(){
         updateBoard(data.id, getCurrentPlayer());
         checkForWinner();
         switchPlayers();
+      }else if(data.player){
+        newGame();
       }
     });
 //  }
