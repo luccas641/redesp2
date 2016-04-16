@@ -1,83 +1,271 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 <head>
-<title>GettingStarted</title>
-  <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-  <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-  <style type="text/css">
-    .jumbotron {
-        background: #532f8c;
-        color: white;
-        padding-bottom: 80px
-    }
-    .jumbotron .btn-primary {
-        background: #845ac7;
-        border-color: #845ac7
-    }
-    .jumbotron .btn-primary:hover {
-        background: #7646c1
-    }
-    .jumbotron p {
-        color: #d9ccee;
-        max-width: 75%;
-        margin: 1em auto 2em
-    }
-    .navbar+.jumbotron {
-        margin-top: -20px
-    }
-    .jumbotron .lang-logo {
-        display: block;
-        background: #b01302;
-        border-radius: 50%;
-        overflow: hidden;
-        width: 100px;
-        height: 100px;
-        margin: auto;
-        border: 2px solid white
-    }
-    .jumbotron .lang-logo img {
-        max-width: 100%
-    }
+  <title>Tic Tac Toe</title>
+  <meta name="viewport" content="width=600px" />
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+  <style>
 
-
-  </style>
+  body {
+    text-align: center;
+    font-size: 16px;
+    font-family: 'Comic Sans MS', Helvetica, sans-serif;
+  }
+  table {
+    margin-left:auto;
+    margin-right:auto;
+    width: 551px;
+    -webkit-user-select: none;
+  }
+  td {
+    height: 175px;
+    width: 175px;
+    text-align: center;
+    font-size: 120px;
+    border: 2px solid #cccccc;
+    -webkit-border-radius: 10px;
+  }
+  #players {
+    margin-left:auto;
+    margin-right:auto;
+    padding: 20px 10px 10px 10px;
+    width: 511px;
+    text-align: left;
+  }
+  #players > div {
+    display: inline-block;
+    padding-right: 25px;
+    color: #cccccc;
+    -webkit-transition-duration: 200ms;
+  }
+  .button {
+    float: right;
+  }
+  .current-player {
+    color: black !important;
+    -webkit-transform: scale(1.5);
+  }
+  .X-marker {
+    color: #663366;
+  }
+  .X-marker:before {
+    content: "X";
+  }
+  .O-marker {
+    color: #CC0033;
+  }
+  .O-marker:before {
+    content: "O";
+  }
+</style>
 </head>
-<body>
-<nav class="navbar navbar-default navbar-static-top navbar-inverse">
-  <div class="container">
-    <ul class="nav navbar-nav">
-      <li class="active">
-        <a href="/"><span class="glyphicon glyphicon-home"></span> Home</a>
-      </li>
-      <li>
-        <a href="https://devcenter.heroku.com/articles/how-heroku-works"><span class="glyphicon glyphicon-user"></span> How Heroku Works</a>
-      </li>
-      <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><span class="glyphicon glyphicon-info-sign"></span> Getting Started Guides <span class="caret"></span></a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-ruby">Getting Started with Ruby on Heroku</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-nodejs">Getting Started with Node on Heroku</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-php">Getting Started with PHP on Heroku</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-python">Getting Started with Python on Heroku</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-java">Getting Started with Java on Heroku</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-clojure">Getting Started with Clojure on Heroku</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-scala">Getting Started with Scala on Heroku</a></li>
-            <li class="divider"></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-heroku-and-connect-without-local-dev">Getting Started on Heroku with Heroku Connect</a></li>
-            <li><a href="https://devcenter.heroku.com/articles/getting-started-with-jruby">Getting Started with Ruby on Heroku (Microsoft Windows)</a></li>
-          </ul>
-      </li>
-    </ul>
-    <ul class="nav navbar-nav navbar-right">
-      <li class="navbar-right">
-        <a href="https://devcenter.heroku.com"><span class="glyphicon glyphicon-book"></span> Heroku Dev Center</a>
-      </li>
-    </ul>
-  </div>
-</nav>
+<body onload="init();">
 
 {% block content %}{% endblock %}
 
 </body>
+<script>
+
+var board = new Array(9);
+var player = 0;
+
+function init() {
+  var down = "mousedown"; var up = "mouseup";
+  if ('createTouch' in document) { down = "touchstart"; up ="touchend"; }
+
+  document.querySelector("input.button").addEventListener(up, newGame, false);
+  var squares = document.getElementsByTagName("td");
+  for (var s = 0; s < squares.length; s++) {
+    squares[s].addEventListener(down, function(evt){squareSelected(evt, getCurrentPlayer());}, false);
+  }
+
+  $.get( "/auth", function( data ) {
+    setInitialPlayer();
+    if(data.player!="error"){
+      player = data.player;
+      if(player==1){
+        document.getElementById("me").innerHTML = "X";
+      }else{
+        document.getElementById("me").innerHTML = "O";
+      }
+      createBoard();
+      if(player==2){
+        $.get( "/getChoice?p=2", function(data) {
+          if(data.id){
+            fillSquareWithMarker(document.getElementById(data.id), "X");
+            updateBoard(data.id, "X");
+            switchPlayers();
+          }
+        });
+      }
+    }else{
+      if(confirm("Já existem 2 jogadores logados. Deseja desconecta-los e iniciar um novo jogo?")){
+        newGame();
+      }
+    }
+    check();
+  });
+}
+
+function createBoard() {
+  for (var i = 0; i < board.length; i++) {
+    board[i] = "";
+    document.getElementById(i).innerHTML = "";
+  }
+}
+
+/*** call this function whenever a square is clicked or tapped ***/
+function squareSelected(evt, currentPlayer) {
+  if(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 ){
+    var square = evt.target;
+    /* check to see if the square already contains an X or O marker */
+    if (square.className.match(/marker/)) {
+      alert("Espaço ja utilizado");
+      return;
+    }
+    /* if not already marked, mark the square, update the array that tracks our board, check for a winner, and switch players */
+    else {
+      $.get( "/postChoice?i="+square.id, function( data ) {
+
+      });
+      fillSquareWithMarker(square, currentPlayer);
+      updateBoard(square.id, currentPlayer);
+      checkForWinner();
+      switchPlayers();
+    }
+  }else{
+    alert("Aguarde sua vez");
+  }
+}
+
+/*** create an X or O div and append it to the square ***/
+function fillSquareWithMarker(square, player) {
+  var marker = document.createElement('div');
+  /* set the class name on the new div to X-marker or O-marker, depending on the current player */
+  marker.className = player + "-marker";
+  square.appendChild(marker);
+}
+
+/*** update our array which tracks the state of the board, and write the current state to local storage ***/
+function updateBoard(index, marker) {
+  board[index] = marker;
+
+  /* HTML5 localStorage only allows storage of strings - convert our array to a string */
+  var boardstring = JSON.stringify(board);
+
+}
+
+
+/***********************************************************************************/
+/* checking for and declaring a winner, after a square has been marked with X or O */
+/***********************************************************************************/
+/* Our Tic Tac Toe board, an array:
+  0 1 2
+  3 4 5
+  6 7 8
+*/
+function declareWinner() {
+  if (confirm("We have a winner!  New game?")) {
+    newGame();
+  }
+}
+
+function weHaveAWinner(a, b, c) {
+  if ((board[a] === board[b]) && (board[b] === board[c]) && (board[a] != "" || board[b] != "" || board[c] != "")) {
+    setTimeout(declareWinner(), 100);
+    return true;
+  }
+  else
+    return false;
+}
+
+function checkForWinner() {
+  /* check rows */
+  var a = 0; var b = 1; var c = 2;
+  while (c < board.length) {
+    if (weHaveAWinner(a, b, c)) {
+      return;
+    }
+    a+=3; b+=3; c+=3;
+  }
+
+  /* check columns */
+  a = 0; b = 3; c = 6;
+  while (c < board.length) {
+    if (weHaveAWinner(a, b, c)) {
+      return;
+    }
+    a+=1; b+=1; c+=1;
+  }
+
+  /* check diagonal right */
+  if (weHaveAWinner(0, 4, 8)) {
+    return;
+  }
+  /* check diagonal left */
+  if (weHaveAWinner(2, 4, 6)) {
+    return;
+  }
+
+  /* if there's no winner but the board is full, ask the user if they want to start a new game */
+  if (!JSON.stringify(board).match(/,"",/)) {
+    if (confirm("It's a draw. New game?")) {
+      newGame();
+    }
+  }
+}
+
+
+/****************************************************************************************/
+/* utilities for getting the current player, switching players, and creating a new game */
+/****************************************************************************************/
+function getCurrentPlayer() {
+  return document.querySelector(".current-player").id;
+}
+
+/* set the initial player, when starting a whole new game or restoring the game state when the page is revisited */
+function setInitialPlayer() {
+  var playerX = document.getElementById("X");
+  var playerO = document.getElementById("O");
+  playerX.className = "";
+  playerO.className = "";
+
+  playerX.className = "current-player";
+
+}
+
+function switchPlayers() {
+  var playerX = document.getElementById("X");
+  var playerO = document.getElementById("O");
+
+  if (playerX.className.match(/current-player/)) {
+    playerO.className = "current-player";
+    playerX.className = "";
+  }
+  else {
+    playerX.className = "current-player";
+    playerO.className = "";
+  }
+}
+
+function newGame() {
+  location.reload();
+}
+
+function check(){
+  console.log(getCurrentPlayer(), player);
+  //if(){
+    $.get( "/getChoice?p="+player, function(data) {
+      if(data.id && !(getCurrentPlayer()=="O" && player==2 ||getCurrentPlayer()=="X" && player==1 )){
+        fillSquareWithMarker(document.getElementById(data.id), getCurrentPlayer());
+        updateBoard(data.id, getCurrentPlayer());
+        checkForWinner();
+        switchPlayers();
+      }
+    });
+//  }
+   setTimeout(check, 1000);
+}
+
+</script>
 </html>
